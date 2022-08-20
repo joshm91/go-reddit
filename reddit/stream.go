@@ -16,6 +16,7 @@ type StreamService struct {
 //   - a channel into which new posts will be sent
 //   - a channel into which any errors will be sent
 //   - a function that the client can call once to stop the streaming and close the channels
+//
 // Because of the 100 post limit imposed by Reddit when fetching posts, some high-traffic
 // streams might drop submissions between API requests, such as when streaming r/all.
 func (s *StreamService) Posts(subreddit string, opts ...StreamOpt) (<-chan *Post, <-chan error, func()) {
@@ -36,8 +37,8 @@ func (s *StreamService) Posts(subreddit string, opts ...StreamOpt) (<-chan *Post
 	stop := func() {
 		once.Do(func() {
 			ticker.Stop()
-			close(postsCh)
-			close(errsCh)
+			// close(postsCh)
+			// close(errsCh)
 		})
 	}
 
@@ -85,6 +86,8 @@ func (s *StreamService) Posts(subreddit string, opts ...StreamOpt) (<-chan *Post
 				break
 			}
 		}
+		close(postsCh)
+		close(errsCh)
 	}()
 
 	return postsCh, errsCh, stop

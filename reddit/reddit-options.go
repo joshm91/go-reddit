@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+
+	"golang.org/x/oauth2"
 )
 
 // Opt is used to further configure a client upon initialization.
@@ -51,6 +53,24 @@ func WithTokenURL(u string) Opt {
 			return err
 		}
 		c.TokenURL = url
+		return nil
+	}
+}
+
+// WithTokenSource sets an OAuth2 Token source.
+func WithTokenSource(t oauth2.TokenSource) Opt {
+	return func(c *Client) error {
+		c.oauth2TokenSource = &t
+		return nil
+	}
+}
+
+// WithApplicationOnlyOAuth sets authentication flow to "Application Only OAuth".
+// Only ID and Secret are required to be set in client. Username and Password are ignored.
+// The flow is described here: https://github.com/reddit-archive/reddit/wiki/OAuth2#application-only-oauth
+func WithApplicationOnlyOAuth(o bool) Opt {
+	return func(c *Client) error {
+		c.applicationOnlyOAuth = o
 		return nil
 	}
 }

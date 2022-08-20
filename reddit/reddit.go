@@ -96,7 +96,8 @@ type Client struct {
 	Widget     *WidgetService
 	Wiki       *WikiService
 
-	oauth2Transport *oauth2.Transport
+	oauth2TokenSource    *oauth2.TokenSource
+	applicationOnlyOAuth bool
 
 	onRequestCompleted RequestCompletionCallback
 }
@@ -292,6 +293,11 @@ func (c *Client) NewJSONRequest(method string, path string, body interface{}) (*
 	req.Header.Add(headerAccept, mediaTypeJSON)
 
 	return req, nil
+}
+
+// HttpClient returns the internal HTTP client used to make requests
+func (c *Client) HttpClient() *http.Client {
+	return c.client
 }
 
 // Response is a Reddit response. This wraps the standard http.Response returned from Reddit.
