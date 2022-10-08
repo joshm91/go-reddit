@@ -5,9 +5,10 @@ import "time"
 const defaultStreamInterval = time.Second * 5
 
 type streamConfig struct {
-	Interval       time.Duration
-	DiscardInitial bool
-	MaxRequests    int
+	Interval        time.Duration
+	DynamicInterval bool
+	DiscardInitial  bool
+	MaxRequests     int
 }
 
 // StreamOpt is a configuration option to configure a stream.
@@ -21,6 +22,12 @@ func StreamInterval(v time.Duration) StreamOpt {
 			c.Interval = v
 		}
 	}
+}
+
+// DynamicInterval takes control of the streamer interval and continuously optimises
+// the request frequency to take full advantage of the remaining rate limit.
+func DynamicInterval(c *streamConfig) {
+	c.DynamicInterval = true
 }
 
 // StreamDiscardInitial will discard data from the first fetch for the stream.

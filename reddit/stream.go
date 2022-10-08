@@ -2,6 +2,7 @@ package reddit
 
 import (
 	"context"
+	"math"
 	"sync"
 	"time"
 )
@@ -55,13 +56,19 @@ func (s *StreamService) Posts(subreddit string, opts ...StreamOpt) (<-chan *Post
 		for ; ; <-ticker.C {
 			n++
 
-			posts, err := s.getPosts(subreddit)
+			posts, resp, err := s.getPosts(subreddit)
 			if err != nil {
 				errsCh <- err
 				if !infinite && n >= streamConfig.MaxRequests {
 					break
 				}
 				continue
+			}
+
+			if streamConfig.DynamicInterval {
+				secondsUntilReset := time.Until(resp.Rate.Reset).Seconds()
+				newInterval := time.Duration(math.Ceil(secondsUntilReset/float64(resp.Rate.Remaining))) * time.Second
+				ticker.Reset(newInterval)
 			}
 
 			for _, post := range posts {
@@ -93,9 +100,9 @@ func (s *StreamService) Posts(subreddit string, opts ...StreamOpt) (<-chan *Post
 	return postsCh, errsCh, stop
 }
 
-func (s *StreamService) getPosts(subreddit string) ([]*Post, error) {
-	posts, _, err := s.client.Subreddit.NewPosts(context.Background(), subreddit, &ListOptions{Limit: 100})
-	return posts, err
+func (s *StreamService) getPosts(subreddit string) ([]*Post, *Response, error) {
+	posts, resp, err := s.client.Subreddit.NewPosts(context.Background(), subreddit, &ListOptions{Limit: 100})
+	return posts, resp, err
 }
 
 type set map[string]struct{}
