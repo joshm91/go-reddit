@@ -67,7 +67,7 @@ func (s *StreamService) Posts(subreddit string, opts ...StreamOpt) (<-chan *Post
 
 			if streamConfig.DynamicInterval {
 				secondsUntilReset := time.Until(resp.Rate.Reset).Seconds()
-				newInterval := time.Duration(math.Ceil(secondsUntilReset/float64(resp.Rate.Remaining))) * time.Second
+				newInterval := (time.Duration(math.Ceil(secondsUntilReset/float64(resp.Rate.Remaining))) + 1) * time.Second
 				ticker.Reset(newInterval)
 			}
 
